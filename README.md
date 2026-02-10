@@ -10,6 +10,8 @@ A Helm chart for running [Claude Code CLI](https://github.com/anthropics/claude-
 
 ## Quick Start
 
+For an in-depth installation walkthrough, see the [Claude Code on Kubernetes blog post](https://metoro.io/blog/claude-code-kubernetes).
+
 ```bash
 helm repo add claude-code https://chrisbattarbee.github.io/claude-code-helm
 helm repo update
