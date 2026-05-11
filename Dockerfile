@@ -1,4 +1,4 @@
-FROM node:24-bookworm-slim
+FROM node:26-bookworm-slim
 
 ARG CLAUDE_CODE_VERSION=latest
 ARG BUILD_DATE
