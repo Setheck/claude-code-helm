@@ -10,7 +10,7 @@ image:
   # -- Container image repository. This image must already contain the `claude` binary.
   repository: ghcr.io/setheck/claude-code
   # -- Container image tag. Pin this to an explicit Claude Code version tag.
-  tag: "2.1.37"
+  tag: "2.1.139"
   # -- Image pull policy
   pullPolicy: IfNotPresent
 
