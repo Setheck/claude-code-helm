@@ -37,54 +37,18 @@ jobs:
 
       - name: Resolve image metadata
         id: meta
-        run: |
-          set -euo pipefail
-          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/claude-code"
-          short_sha="$(printf '%s' "$GITHUB_SHA" | cut -c1-7)"
-          claude_code_version="latest"
-          primary_tag=""
-          tags=()
-
-          if [[ "${GITHUB_EVENT_NAME}" == "push" && "${GITHUB_REF_TYPE}" == "tag" ]]; then
-            ref_name="${GITHUB_REF_NAME}"
-            claude_code_version="${ref_name#claude-}"
-            if [[ "$claude_code_version" == "$ref_name" ]]; then
-              echo "Expected tag format claude-X.Y.Z, got: $ref_name" >&2
-              exit 1
-            fi
-            tags+=("${image}:${claude_code_version}")
-            tags+=("${image}:latest")
-            primary_tag="${image}:${claude_code_version}"
-          elif [[ "${GITHUB_EVENT_NAME}" == "workflow_dispatch" ]]; then
-            input_version="${{ inputs.claude_code_version }}"
-            if [[ -n "$input_version" ]]; then
-              claude_code_version="$input_version"
-            fi
-            if [[ "$claude_code_version" == "latest" ]]; then
-              tags+=("${image}:latest")
-              tags+=("${image}:sha-${short_sha}")
-              primary_tag="${image}:latest"
-            else
-              tags+=("${image}:${claude_code_version}")
-              tags+=("${image}:latest")
-              primary_tag="${image}:${claude_code_version}"
-            fi
-          else
-            echo "Unsupported event: ${GITHUB_EVENT_NAME}" >&2
-            exit 1
-          fi
-
-          {
-            echo "image=${image}"
-            echo "claude_code_version=${claude_code_version}"
-            echo "build_date=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            echo "primary_tag=${primary_tag}"
-            echo "tags<<EOF"
-            for tag in "${tags[@]}"; do
-              echo "${tag}"
-            done
-            echo "EOF"
-          } >> "$GITHUB_OUTPUT"
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/claude-code
+          tags: |
+            type=match,pattern=claude-(.+),group=1
+            type=raw,value=${{ inputs.claude_code_version }},enable=${{ github.event_name == 'workflow_dispatch' && inputs.claude_code_version != '' }}
+            type=sha,prefix=sha-,format=short,enable=${{ github.event_name == 'workflow_dispatch' && (inputs.claude_code_version == '' || inputs.claude_code_version == 'latest') }}
+          flavor: |
+            latest=true
+          labels: |
+            org.opencontainers.image.title=claude-code
+            org.opencontainers.image.description=Claude Code CLI runtime image with core development tools
 
       - name: Build and push multi-arch image
         id: build
@@ -95,14 +59,14 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            CLAUDE_CODE_VERSION=${{ steps.meta.outputs.claude_code_version }}
-            BUILD_DATE=${{ steps.meta.outputs.build_date }}
-            VCS_REF=${{ github.sha }}
+            CLAUDE_CODE_VERSION=${{ steps.meta.outputs.version }}
 
       - name: Verify published manifest contains amd64 and arm64
         run: |
           set -euo pipefail
-          docker buildx imagetools inspect "${{ steps.meta.outputs.primary_tag }}" > /tmp/imagetools.txt
+          primary_tag="$(printf '%s\n' "${{ steps.meta.outputs.tags }}" | head -n 1)"
+          docker buildx imagetools inspect "$primary_tag" > /tmp/imagetools.txt
           grep -q "linux/amd64" /tmp/imagetools.txt
           grep -q "linux/arm64" /tmp/imagetools.txt

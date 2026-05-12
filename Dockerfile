@@ -3,8 +3,6 @@ FROM ubuntu:24.04
 ARG CLAUDE_CODE_VERSION=latest
 ARG NODE_MAJOR=26
 ARG GO_VERSION=1.25.10
-ARG BUILD_DATE
-ARG VCS_REF
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -58,12 +56,5 @@ RUN mkdir -p /opt/claude \
 
 WORKDIR /home/ubuntu
 USER ubuntu
-
-LABEL org.opencontainers.image.title="claude-code" \
-      org.opencontainers.image.description="Claude Code CLI runtime image with core development tools" \
-      org.opencontainers.image.source="https://github.com/Setheck/claude-code-helm" \
-      org.opencontainers.image.created="${BUILD_DATE}" \
-      org.opencontainers.image.revision="${VCS_REF}" \
-      org.opencontainers.image.version="${CLAUDE_CODE_VERSION}"
 
 CMD ["bash"]
