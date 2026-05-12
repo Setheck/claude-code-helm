@@ -2,8 +2,6 @@ name: Build and Publish Image
 
 on:
   push:
-    branches:
-      - main
     tags:
       - "claude-*"
   workflow_dispatch:
@@ -72,9 +70,8 @@ jobs:
               primary_tag="${image}:${claude_code_version}"
             fi
           else
-            tags+=("${image}:latest")
-            tags+=("${image}:sha-${short_sha}")
-            primary_tag="${image}:latest"
+            echo "Unsupported event: ${GITHUB_EVENT_NAME}" >&2
+            exit 1
           fi
 
           {
