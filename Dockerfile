@@ -46,10 +46,18 @@ ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     GOPATH=$HOME/go \
     PATH=/usr/local/go/bin:$HOME/.local/bin:$HOME/go/bin:$PATH
 
-WORKDIR $HOME
-USER ubuntu
+# Install Claude Code into /opt/claude (outside $HOME) so the binary survives a
+# PersistentVolumeClaim mount over the user's home directory at runtime.
+# Runtime config and auth state still live under $HOME/.claude and persist via
+# the PVC.
+RUN mkdir -p /opt/claude \
+    && export HOME=/opt/claude \
+    && curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}" \
+    && ln -s /opt/claude/.local/bin/claude /usr/local/bin/claude \
+    && chmod -R a+rX /opt/claude
 
-RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
+WORKDIR /home/ubuntu
+USER ubuntu
 
 LABEL org.opencontainers.image.title="claude-code" \
       org.opencontainers.image.description="Claude Code CLI runtime image with core development tools" \
