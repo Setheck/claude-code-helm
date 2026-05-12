@@ -27,6 +27,9 @@ command:
 # -- Optional args passed to the command
 extraArgs: []
 
+# -- Home directory for the container user; used for the HOME env var and the persistent volume mount
+home: /home/ubuntu
+
 # -- Non-secret environment variables
 env: {}
 # Example:
@@ -48,7 +51,7 @@ credentials:
 
 # Persistence configuration for HOME
 persistence:
-  # -- Enable persistent storage for /home/node
+  # -- Enable persistent storage for the home directory (see `home`)
   enabled: true
   # -- Storage size
   size: 5Gi

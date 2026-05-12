@@ -53,7 +53,7 @@ spec:
           {{- end }}
           env:
             - name: HOME
-              value: /home/node
+              value: {{ .Values.home | quote }}
             {{- range $name, $value := .Values.env }}
             - name: {{ $name }}
               value: {{ $value | quote }}
@@ -69,7 +69,7 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           volumeMounts:
             - name: home
-              mountPath: /home/node
+              mountPath: {{ .Values.home | quote }}
       volumes:
         - name: home
           {{- if .Values.persistence.enabled }}
