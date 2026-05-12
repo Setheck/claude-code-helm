@@ -8,7 +8,7 @@ fullnameOverride: ""
 # Image configuration
 image:
   # -- Container image repository. This image must already contain the `claude` binary.
-  repository: ghcr.io/chrisbattarbee/claude-code
+  repository: ghcr.io/setheck/claude-code
   # -- Container image tag. Pin this to an explicit Claude Code version tag.
   tag: "2.1.37"
   # -- Image pull policy

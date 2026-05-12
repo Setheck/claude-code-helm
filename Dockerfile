@@ -44,20 +44,18 @@ ENV HOME=/home/ubuntu
 ENV PIP_DISABLE_PIP_VERSION_CHECK=1 \
     PYTHONUNBUFFERED=1 \
     GOPATH=$HOME/go \
-    PATH=/usr/local/go/bin:$HOME/go/bin:$PATH
-
-RUN npm install -g "@anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}" \
-    && npm cache clean --force
+    PATH=/usr/local/go/bin:$HOME/.local/bin:$HOME/go/bin:$PATH
 
 WORKDIR $HOME
+USER ubuntu
+
+RUN curl -fsSL https://claude.ai/install.sh | bash -s "${CLAUDE_CODE_VERSION}"
 
 LABEL org.opencontainers.image.title="claude-code" \
       org.opencontainers.image.description="Claude Code CLI runtime image with core development tools" \
-      org.opencontainers.image.source="https://github.com/Chrisbattarbee/claude-code-helm" \
+      org.opencontainers.image.source="https://github.com/Setheck/claude-code-helm" \
       org.opencontainers.image.created="${BUILD_DATE}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.version="${CLAUDE_CODE_VERSION}"
-
-USER ubuntu
 
 CMD ["bash"]

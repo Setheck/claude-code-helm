@@ -6,6 +6,8 @@
 
 A Helm chart for running [Claude Code CLI](https://github.com/anthropics/claude-code) in Kubernetes as a long-lived pod with a persistent HOME directory.
 
+> Forked from [Chrisbattarbee/claude-code-helm](https://github.com/Chrisbattarbee/claude-code-helm) — see the upstream repo for the original chart and the [Claude Code on Kubernetes blog post](https://metoro.io/blog/claude-code-kubernetes) that inspired it.
+
 ---
 
 ## Quick Start
@@ -13,7 +15,7 @@ A Helm chart for running [Claude Code CLI](https://github.com/anthropics/claude-
 For an in-depth installation walkthrough, see the [Claude Code on Kubernetes blog post](https://metoro.io/blog/claude-code-kubernetes).
 
 ```bash
-helm repo add claude-code https://chrisbattarbee.github.io/claude-code-helm
+helm repo add claude-code https://setheck.github.io/claude-code-helm
 helm repo update
 helm install claude claude-code/claude-code
 ```
@@ -34,17 +36,17 @@ claude
 - Helm 3.0+
 - Docker (if you want to build/publish your own image)
 
-> The chart does not install Claude Code at startup. It expects `image.repository:image.tag` to be ready-to-run (defaults to `ghcr.io/chrisbattarbee/claude-code:2.1.37`).
+> The chart does not install Claude Code at startup. It expects `image.repository:image.tag` to be ready-to-run (defaults to `ghcr.io/setheck/claude-code:2.1.37`).
 
 ---
 
 ## Persistence Model
 
-By default, the chart mounts a PersistentVolumeClaim at `/home/node`. This means:
+By default, the chart mounts a PersistentVolumeClaim at `/home/ubuntu`. This means:
 
 - `~/.claude` (auth/config/logs) persists across pod restarts
 - interactive login state survives restarts
-- any additional files in `/home/node` persist
+- any additional files in `/home/ubuntu` persist
 
 Disable persistence if needed:
 
@@ -88,7 +90,7 @@ helm install claude claude-code/claude-code \
 
 ### 3) Login interactively inside the pod
 
-`claude` login artifacts are written under `/home/node/.claude` and persist because HOME is PVC-backed by default.
+`claude` login artifacts are written under `/home/ubuntu/.claude` and persist because HOME is PVC-backed by default.
 
 ---
 
@@ -97,17 +99,17 @@ helm install claude claude-code/claude-code \
 This repository includes a multi-arch image workflow at [`.github/workflows/build-image.yaml`](.github/workflows/build-image.yaml).
 
 - Push to `main` publishes:
-  - `ghcr.io/chrisbattarbee/claude-code:latest`
-  - `ghcr.io/chrisbattarbee/claude-code:sha-<shortsha>`
+  - `ghcr.io/setheck/claude-code:latest`
+  - `ghcr.io/setheck/claude-code:sha-<shortsha>`
 - Push a tag named `claude-X.Y.Z` publishes:
-  - `ghcr.io/chrisbattarbee/claude-code:X.Y.Z`
-  - `ghcr.io/chrisbattarbee/claude-code:latest`
+  - `ghcr.io/setheck/claude-code:X.Y.Z`
+  - `ghcr.io/setheck/claude-code:latest`
 - Images are built for both `linux/amd64` and `linux/arm64`.
 
-Claude Code version baked into the image is controlled by the workflow:
+Claude Code version baked into the image is controlled by the workflow and installed via the official native installer (`https://claude.ai/install.sh`):
 
-- `main` builds install `@anthropic-ai/claude-code@latest`
-- `claude-X.Y.Z` tag builds install `@anthropic-ai/claude-code@X.Y.Z`
+- `main` builds install the `latest` Claude Code release
+- `claude-X.Y.Z` tag builds install Claude Code `X.Y.Z`
 
 For reproducibility, Helm defaults should point to explicit version tags rather than `latest`.
 
@@ -117,13 +119,13 @@ For reproducibility, Helm defaults should point to explicit version tags rather 
 
 | Parameter                    | Description                                         | Default        |
 | ---------------------------- | --------------------------------------------------- | -------------- |
-| `image.repository`           | Prebuilt image containing `claude`                 | `ghcr.io/chrisbattarbee/claude-code` |
+| `image.repository`           | Prebuilt image containing `claude`                 | `ghcr.io/setheck/claude-code` |
 | `image.tag`                  | Image tag                                           | `2.1.37`       |
 | `command`                    | Container command (idle by default)                 | `sh -lc sleep infinity` |
 | `credentials.existingSecret` | Existing secret for env vars                        | `""`           |
 | `credentials.anthropicApiKey`| API key for chart-managed secret                    | `""`           |
 | `credentials.secretData`     | Extra chart-managed secret key/value pairs          | `{}`           |
-| `persistence.enabled`        | Persist `/home/node`                                | `true`         |
+| `persistence.enabled`        | Persist `/home/ubuntu`                                | `true`         |
 | `persistence.size`           | PVC size                                            | `5Gi`          |
 | `persistence.existingClaim`  | Use existing PVC instead of creating one            | `""`           |
 
